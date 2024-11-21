@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Vue.jsの基本例</title>
+    <!-- Vue.jsを読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+
+        
+
+        <div id="input">
+            <div id="inputStartPoint">
+                <select v-model="selectedValue" id="options">
+                    <option disabled value="">--段位を選択してください--</option>
+                    <option v-for="option in options" :key="option.value" :value="option.value">
+                        {{ option.text }}
+                    </option>
+                </select>
+                <br>
+                <input type="number" class="no-spin" placeholder="開始時のポイントを入力してください。" id="ip_point" @blur="changeNowPoint" :disabled="isDisabled"> / <input type="text" disabled :value="selectedValue" placeholder="昇段ポイント">
+            </div>
+
+            <div id="selectRank">
+                <button v-for="i in 3" :key="i" @click="selectRank(i)" :class="{'selected': selectedRank === i}">{{i}}</button>
+            </div>
+
+            <div id="inputScore">
+                <input :value="inputedScore" readonly placeholder="電卓から取得ptを入力してください。"><br>
+
+                <button @click="inputScore('C')">C</button>
+                <button @click="inputScore('-')">-</button><br>
+
+                <button @click="inputScore('7')">7</button>
+                <button @click="inputScore('8')">8</button>
+                <button @click="inputScore('9')">9</button><br>
+
+                <button @click="inputScore('4')">4</button>
+                <button @click="inputScore('5')">5</button>
+                <button @click="inputScore('6')">6</button><br>
+
+                <button @click="inputScore('1')">1</button>
+                <button @click="inputScore('2')">2</button>
+                <button @click="inputScore('3')">3</button><br>
+
+                <button @click="inputScore('0')">0</button>
+            </div>
+
+            <div id="add">
+                <button @click="ok()">追加する</button>
+            </div>
+        </div>
+        
+        <div class="slider-container">
+            <label for="size-slider">サイズ調整:</label>
+            <input type="range" id="size-slider" v-model="outputSize" min="10" max="30">
+        </div>
+
+        <div class="font-selector">
+            <label for="font-select">フォント選択:</label>
+            <select id="font-select" v-model="selectedFont">
+                <option v-for="font in fontList" :value="font" :key="font">
+                    {{ font }}
+                </option>
+            </select>
+        </div>
+
+        <div id="output" :style="{ fontSize: outputSize + 'px', fontFamily: selectedFont }">
+            <p>現在のポイント : {{ot_newPoint}} / {{selectedValue}}</p>
+
+            <p>順位分布 : {{ot_rank_count}}</p>
+
+            <p>順位履歴 : {{ot_rank_string}}</p>
+
+            <p>平均順位 : {{ot_rank_average}}</p>
+
+            <p>合計ポイント : {{ot_point}}</p>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/webfont/1.6.28/webfontloader.js"></script>
+
+    </div>
+
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    outputSize: 20,
+                    selectedFont: 'Arial', // 初期フォント
+                    fontList: [], // フォントのリスト
+                    counter: 0,                  // カウンター初期値
+                    inputValue: '',              // 入力フィールドの値
+                    selectedValue: '',           // 選択された値を保持する
+                    selectedRank:'',
+                    inputedScore:'',
+                    ot_newPoint:0,//ok
+                    ot_rank_count:'',//ok
+                    ot_rank_string:'',//ok
+                    ot_rank_average:'',
+                    isDisabled:false,
+                    ot_point:0,
+                    lastValue:0,
+                    addData:[],
+                    datas:[],
+                    options: [  // 選択肢のデータ
+                        { value: '20', text: '初心1' },
+                        { value: '80', text: '初心2' },
+                        { value: '200', text: '初心3' },
+                        { value: '600', text: '雀士1' },
+                        { value: '800', text: '雀士2' },
+                        { value: '1000', text: '雀士3' },
+                        { value: '1200', text: '雀傑1' },
+                        { value: '1400', text: '雀傑2' },
+                        { value: '2000', text: '雀傑3' },
+                        { value: '2800', text: '雀豪1' },
+                        { value: '3200', text: '雀豪2' },
+                        { value: '3600', text: '雀豪3' },
+                        { value: '4000', text: '雀聖1' },
+                        { value: '6000', text: '雀聖2' },
+                        { value: '9000', text: '雀聖3' }
+                    ]
+                };
+            },
+            methods: {
+                changeMessage() {
+                    this.message = 'メッセージが変更されました！';
+                },
+                incrementCounter() {
+                    this.counter++;
+                },
+                selectRank(int){
+                    this.selectedRank = int ;
+                },
+                inputScore(str){
+                    if(str == 'C'){ //Cはクリア
+                        this.inputedScore = '';
+                        return;
+                    }
+
+                    //変更前の値取得
+                    this.lastValue = this.inputedScore;
+
+                    if(str == '-'){ //-の場合は符号の付与
+                        if (this.inputedScore.startsWith('-')) {
+                            // 先頭が"-"の場合、"-"を取り除く
+                            this.inputedScore = this.inputedScore.substring(1);
+                        } else {
+                            // 先頭が"-"でない場合、"-"を先頭に追加
+                            this.inputedScore = '-' + this.inputedScore;
+                        }
+                        // 符号変更後の '-0' をチェック
+                        if (this.inputedScore === '-0') {
+                            this.inputedScore = '-';
+                        }
+
+                        return;
+                    }
+
+                    // 数値を結合
+                    if (typeof this.inputedScore === 'string') {
+                        this.inputedScore += str;
+                    } else {
+                        this.inputedScore = String(str); // 明示的に文字列化
+                    }
+
+                    // 不正な0の重複を削除するロジック
+                    this.inputedScore = this.inputedScore.replace(/^(-?)0+(?=\d)/, '$1');
+
+                    // 符号変更後の '-0' をチェック
+                    if (this.inputedScore === '-0') {
+                        this.inputedScore = this.lastValue;
+                    }
+                },
+                checkElement(element){
+                    // 要素がnullまたはundefinedの場合はfalseを返す
+                    if (element == null) {
+                        return false;
+                    }
+                    // 要素が空文字の場合もfalseを返す
+                    if (typeof element === 'string' && element.trim() === '') {
+                        return false;
+                    }
+                    // それ以外の場合はtrueを返す
+                    return true;
+                },
+                ok(){
+                    if(!this.checkElement(this.selectedValue)||!this.checkElement(this.selectedRank)||!this.checkElement(this.inputedScore)||!this.checkElement(parseInt(document.getElementById('ip_point').value))){
+                        return;
+                    }
+                    this.addData = []; //追加データ配列初期化
+
+                    //this.addData.push(document.getElementById('ip_point').value); //開始時のポイント取得+プッシュ
+                    this.addData.push(this.selectedRank); //選択した順位をプッシュ
+                    this.addData.push(this.inputedScore); //入力した増減ポイント
+
+                    this.selectedRank = ''; //初期化
+                    this.inputedScore = '';
+
+                    this.datas.push(this.addData);
+
+                    this.addData = []; //追加データ配列初期化
+
+                    var StartPoint = parseInt(document.getElementById('ip_point').value);
+                    this.ot_newPoint = StartPoint;
+                    //データ更新
+
+                    var ct_one = 0; //ランクカウント
+                    var ct_two = 0;
+                    var ct_three = 0;
+                    var datas_rank = 0;
+                    var datas_point = 0;
+
+                    //初期化
+                    this.ot_rank_average =0;
+                    this.ot_rank_string='';
+                    this.ot_point=0;
+
+                    for(let i=0; i<this.datas.length;i++){
+                        //this.datas[0] = 順位
+                        //this.datas[1] = 増減ポイント
+                        datas_rank = parseInt(this.datas[i][0]);
+                        datas_point = parseInt(this.datas[i][1]);
+
+                        if(datas_rank == 1){
+                            ct_one++;
+                        }else if(datas_rank == 2){
+                            ct_two++;
+                        }else{
+                            ct_three++;
+                        }
+
+                        this.ot_newPoint = this.ot_newPoint + datas_point; //ポイント
+                        this.ot_point += datas_point; //増減ポイント
+
+                        this.ot_rank_average += datas_rank; //平均順位
+
+                        this.ot_rank_string += datas_rank.toString(); //131232111のやつ
+                    }
+
+                    this.ot_rank_count = ct_one.toString() + '-' + ct_two + '-' + ct_three;
+
+                    this.ot_rank_average = this.ot_rank_average / this.datas.length;
+
+                    this.ot_rank_average = Math.floor(this.ot_rank_average * 100) / 100;
+                },
+                changeNowPoint(){
+                    // 入力値を取得
+                    const inputValue = document.getElementById('ip_point').value;
+
+                    // 入力が正の整数のみ許可（符号や空欄を禁止）
+                    if (/^\d+$/.test(inputValue)) {
+                        this.ot_newPoint = parseInt(inputValue, 10); // 数値に変換して保存
+                        this.isDisabled = true; // 無効化
+                    }
+                },
+                loadFonts() {
+                    // Google Fonts APIからフォントリストを取得
+                    fetch('https://www.googleapis.com/webfonts/v1/webfonts?key=AIzaSyDc1nGbmG2T8s-Meur-hF07XfDYwZRAZuE&subset=japanese')
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(`HTTPエラー: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then((data) => {
+                            if (data.items) {
+                                this.fontList = data.items.map((item) => item.family);
+                                if (this.fontList.length > 0) {
+                                    this.selectedFont = this.fontList[0];
+                                }
+                            } else {
+                                throw new Error('フォントリストが見つかりません');
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('フォントリストの読み込み中にエラーが発生しました:', error);
+                        });
+                },
+                applyFont(font) {
+                    // WebFont Loaderを使用してフォントを動的に読み込む
+                    WebFont.load({
+                        google: {
+                            families: [font],
+                        },
+                    });
+                },
+            },
+            computed: {
+            },
+            watch: {
+                selectedFont(newFont) {
+                    this.applyFont(newFont);
+                },
+            },
+            mounted(){
+                this.loadFonts();
+            }
+        });
+        app.mount('#app');
+    </script>
+</body>
+</html>

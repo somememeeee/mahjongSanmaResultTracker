@@ -1,0 +1,38 @@
+#input{
+    background-color: #CC9900;
+    margin: 0; /* ページ全体に適用 */
+    padding: 0;
+}
+
+#input input,select,button{
+    font-size: 20px; /* フォントサイズを大きく */
+    line-height: 1.5; /* 行の高さを設定 */
+    margin: 1.5px;
+}
+
+#inputStartPoint,#selectRank{
+    margin-bottom :10px;
+}
+
+/* クリックされたボタンに適用されるCSSクラス */
+.selected {
+    background-color: #4caf50;  /* 背景色を緑に変更 */
+    color: white;               /* 文字色を白に変更 */
+    border: 2px solid #3e8e41;  /* 枠線を緑に変更 */
+}
+
+#output{
+    background-color: #FFBBFF;
+    padding-bottom: 50px;
+}
+
+#samplecode{
+    background-color: white;
+}
+
+.no-spin::-webkit-inner-spin-button,
+.no-spin::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    -moz-appearance:textfield;
+}
