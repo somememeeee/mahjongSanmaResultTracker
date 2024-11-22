@@ -281,13 +281,15 @@
                             console.error('フォントリストの読み込み中にエラーが発生しました:', error);
                         });
                 },
-                applyFont(font) {
-                    // WebFont Loaderを使用してフォントを動的に読み込む
-                    WebFont.load({
-                        google: {
-                            families: [font],
-                        },
-                    });
+                applyFont() {
+                    // 選択されたフォントを適用
+                    if (this.selectedFont === "Default") {
+                        // デフォルトフォント（CSSからリセットする）
+                        document.body.style.fontFamily = "";
+                    } else {
+                        // 選択されたフォントを適用
+                        document.body.style.fontFamily = this.selectedFont;
+                    }
                 },
             },
             computed: {
