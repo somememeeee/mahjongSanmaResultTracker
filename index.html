@@ -268,10 +268,11 @@
                         })
                         .then((data) => {
                             if (data.items) {
-                                this.fontList = data.items.map((item) => item.family);
-                                if (this.fontList.length > 0) {
-                                    this.selectedFont = this.fontList[0];
-                                }
+                                // フォントリストを取得し、"Default"を一番上に追加
+                                this.fontList = ["Default"].concat(data.items.map((item) => item.family));
+                                
+                                // 初期選択を "Default" に設定
+                                this.selectedFont = this.fontList[0];
                             } else {
                                 throw new Error('フォントリストが見つかりません');
                             }
