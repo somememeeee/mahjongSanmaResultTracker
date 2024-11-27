@@ -289,6 +289,35 @@
                         },
                     });
                 },
+                saveData() {
+                    const dataToSave = {
+                        selectedValue: this.selectedValue,
+                        selectedRank: this.selectedRank,
+                        inputedScore: this.inputedScore,
+                        ot_newPoint: this.ot_newPoint,
+                        datas: this.datas,
+                        timestamp: Date.now() // 現在のタイムスタンプを保存
+                    };
+                    localStorage.setItem('savedData', JSON.stringify(dataToSave));
+                },
+                loadData() {
+                    const savedData = localStorage.getItem('savedData');
+                    if (savedData) {
+                        const parsedData = JSON.parse(savedData);
+
+                        // タイムスタンプをチェック（18時間以内か確認）
+                        const eighteenHoursInMs = 18 * 60 * 60 * 1000;
+                        if (Date.now() - parsedData.timestamp < eighteenHoursInMs) {
+                            this.selectedValue = parsedData.selectedValue;
+                            this.selectedRank = parsedData.selectedRank;
+                            this.inputedScore = parsedData.inputedScore;
+                            this.ot_newPoint = parsedData.ot_newPoint;
+                            this.datas = parsedData.datas || [];
+                        } else {
+                            localStorage.removeItem('savedData'); // 期限切れなら削除
+                        }
+                    }
+                },
             },
             computed: {
             },
@@ -296,9 +325,18 @@
                 selectedFont(newFont) {
                     this.applyFont(newFont);
                 },
+                selectedValue: 'saveData',
+                selectedRank: 'saveData',
+                inputedScore: 'saveData',
+                ot_newPoint: 'saveData',
+                datas: {
+                    handler: 'saveData',
+                    deep: true // 配列やオブジェクトの中身を監視
+                }
             },
             mounted(){
                 this.loadFonts();
+                this.loadData(); // データを復元
             }
         });
         app.mount('#app');
